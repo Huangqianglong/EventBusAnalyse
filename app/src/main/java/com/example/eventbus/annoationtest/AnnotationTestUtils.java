@@ -17,9 +17,9 @@ public class AnnotationTestUtils {
                 field.setAccessible(true);//设置属性可访问
                 if ("class java.lang.String".equals(field.getGenericType().toString())) {//字符串类型的才判断长度
                     String value = (String) field.get(obj);
+                    Log.d("hql", "变量的值:"+value);
                     if (value != null && ((value.length() > test.max()) || value.length() < test.min())) {
-                        System.out.println(test.description());
-                        Log.d("hql", "max:" + test.max() + ">>min:" + test.min());
+                        Log.d("hql", "max:" + test.max() + ">>min:" + test.min()+">description:"+test.description());
                     }
                 }
             }

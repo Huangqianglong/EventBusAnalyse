@@ -221,7 +221,7 @@ class SubscriberMethodFinder {
             // 2 level check: 1st level with event type only (fast), 2nd level with complete signature when required.
             // Usually a subscriber doesn't have methods listening to the same event type.
             Object existing = anyMethodByEventType.put(eventType, method);
-            if (existing == null) {
+            if (existing == null) {//如果map没有保存过，返回true
                 return true;
             } else {
                 if (existing instanceof Method) {

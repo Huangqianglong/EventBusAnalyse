@@ -114,13 +114,13 @@ public class EventBus {
 
     EventBus(EventBusBuilder builder) {
         logger = builder.getLogger();
-        subscriptionsByEventType = new HashMap<>();
-        typesBySubscriber = new HashMap<>();
-        stickyEvents = new ConcurrentHashMap<>();
-        mainThreadSupport = builder.getMainThreadSupport();
+        subscriptionsByEventType = new HashMap<>();//键值对 <参数类型,订阅者列表>
+        typesBySubscriber = new HashMap<>();//键值对 <订阅者，方法列表
+        stickyEvents = new ConcurrentHashMap<>();//<参数类型，订阅者>
+        mainThreadSupport = builder.getMainThreadSupport();//主线程处理
         mainThreadPoster = mainThreadSupport != null ? mainThreadSupport.createPoster(this) : null;
-        backgroundPoster = new BackgroundPoster(this);
-        asyncPoster = new AsyncPoster(this);
+        backgroundPoster = new BackgroundPoster(this);//后台
+        asyncPoster = new AsyncPoster(this);//异步
         indexCount = builder.subscriberInfoIndexes != null ? builder.subscriberInfoIndexes.size() : 0;
         subscriberMethodFinder = new SubscriberMethodFinder(builder.subscriberInfoIndexes,
                 builder.strictMethodVerification, builder.ignoreGeneratedIndex);
@@ -163,9 +163,9 @@ public class EventBus {
         CopyOnWriteArrayList<Subscription> subscriptions = subscriptionsByEventType.get(eventType);//获取当前订阅该参数的方法
         if (subscriptions == null) {
             subscriptions = new CopyOnWriteArrayList<>();
-            subscriptionsByEventType.put(eventType, subscriptions);//这里就存入map <参数类型,订阅者列表>*/
+            subscriptionsByEventType.put(eventType, subscriptions);//这里就存入map <参数类型,订阅关系列表>*/
         } else {
-            if (subscriptions.contains(newSubscription)) {//newSubscription是new出来的，这里的判断不清楚为什么
+            if (subscriptions.contains(newSubscription)) {//newSubscription是new出来的,不应该会有contains，这里的判断不清楚为什么,
                 throw new EventBusException("Subscriber " + subscriber.getClass() + " already registered to event "
                         + eventType);
             }
@@ -182,7 +182,7 @@ public class EventBus {
         List<Class<?>> subscribedEvents = typesBySubscriber.get(subscriber);
         if (subscribedEvents == null) {
             subscribedEvents = new ArrayList<>();
-            typesBySubscriber.put(subscriber, subscribedEvents);//存入map<订阅者，方法列表>*/
+            typesBySubscriber.put(subscriber, subscribedEvents);//存入map<订阅者，订阅关系>*/
         }
         subscribedEvents.add(eventType);
 
