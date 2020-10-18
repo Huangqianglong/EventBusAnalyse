@@ -1,0 +1,102 @@
+ //注冊事件
+ EventBus
+ register(Object subscriber){
+	subscriberMethodFinder.findSubscriberMethods(subscriberClass);
+	...
+		SubscriberMethodFinder
+		 //从缓存获取
+		 List<SubscriberMethod> subscriberMethods = METHOD_CACHE.get(subscriberClass);
+		 ....
+			findUsingInfo(subscriberClass);
+			.....
+			   findUsingReflectionInSingleClass(findState);
+			   ....
+			   Subscribe subscribeAnnotation = method.getAnnotation(Subscribe.class);
+                    if (subscribeAnnotation != null) {
+                        Class<?> eventType = parameterTypes[0];
+                        if (findState.checkAdd(method, eventType)) {//存入 Map<Class, Object> anyMethodByEventType <参数，方法名>的map
+                            ThreadMode threadMode = subscribeAnnotation.threadMode();
+                            findState.subscriberMethods.add(new SubscriberMethod(method, eventType, threadMode,
+                                    subscribeAnnotation.priority(), subscribeAnnotation.sticky()));//保存方法和参数绑定关系的bean >SubscriberMethod
+                        }
+                    }
+		....
+		getMethodsAndRelease(findState);	
+			...
+			METHOD_CACHE.put(subscriberClass, subscriberMethods);//存入缓存		
+			 return subscriberMethods;
+			 
+		....
+		subscribe(Object subscriber, SubscriberMethod subscriberMethod)
+		....
+			CopyOnWriteArrayList<Subscription> subscriptions = subscriptionsByEventType.get(eventType);//获取当前订阅该参数的<订阅者,订阅关系>列表
+				if (subscriptions == null) {
+					subscriptions = new CopyOnWriteArrayList<>();
+					subscriptionsByEventType.put(eventType, subscriptions);//这里就存入map <参数类型,订阅关系列表>*/
+				} else {
+					if (subscriptions.contains(newSubscription)) {//newSubscription是new出来的,不应该会有contains，这里的判断不清楚为什么,
+						throw new EventBusException("Subscriber " + subscriber.getClass() + " already registered to event "
+								+ eventType);
+					}
+				}
+		....
+		  Set<Map.Entry<Class<?>, Object>> entries = stickyEvents.entrySet();
+                for (Map.Entry<Class<?>, Object> entry : entries) {//遍历参数类型，查找对应订阅者
+                    Class<?> candidateEventType = entry.getKey();
+                    if (eventType.isAssignableFrom(candidateEventType)) {//判定此 Class 对象所表示的类或接口与指定的 Class 参数所表示的类或接口是否相同，或是否是其超类或超接口
+                        Object stickyEvent = entry.getValue();
+                        checkPostStickyEventToSubscription(newSubscription, stickyEvent);//如果是粘性事件，触发检查
+                    }
+                }
+				
+				
+				
+//发送事件
+ public void post(Object event) {
+		PostingThreadState postingState = currentPostingThreadState.get();
+        List<Object> eventQueue = postingState.eventQueue;
+        eventQueue.add(event);//添加到队列
+		...
+		while (!eventQueue.isEmpty()) {//遍历队列
+                    postSingleEvent(eventQueue.remove(0), postingState);
+                }
+			...
+			 subscriptionFound = postSingleEventForEventType(event, postingState, eventClass);
+			 ...
+			   subscriptions = subscriptionsByEventType.get(eventClass);//根据参数类型取出 订阅者-方法列表
+			   ...
+			    postToSubscription(subscription, event, postingState.isMainThread);
+				....
+				switch (subscription.subscriberMethod.threadMode) {
+					case POSTING:
+						invokeSubscriber(subscription, event);
+						break;
+					case MAIN:
+					...
+					}
+					
+						....
+							
+						subscription.subscriberMethod.method.invoke(subscription.subscriber, event);
+    
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+		

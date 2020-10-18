@@ -166,10 +166,10 @@ class SubscriberMethodFinder {
                     Subscribe subscribeAnnotation = method.getAnnotation(Subscribe.class);
                     if (subscribeAnnotation != null) {
                         Class<?> eventType = parameterTypes[0];
-                        if (findState.checkAdd(method, eventType)) {//存入<参数，方法名>的map
+                        if (findState.checkAdd(method, eventType)) {//存入 Map<Class, Object> anyMethodByEventType <参数，方法名>的map
                             ThreadMode threadMode = subscribeAnnotation.threadMode();
                             findState.subscriberMethods.add(new SubscriberMethod(method, eventType, threadMode,
-                                    subscribeAnnotation.priority(), subscribeAnnotation.sticky()));
+                                    subscribeAnnotation.priority(), subscribeAnnotation.sticky()));//保存方法和参数绑定关系的bean >SubscriberMethod
                         }
                     }
                 } else if (strictMethodVerification && method.isAnnotationPresent(Subscribe.class)) {

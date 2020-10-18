@@ -52,8 +52,11 @@ public class EventBus {
      * 键值对 <参数类型,订阅者列表>*/
     private final Map<Class<?>, CopyOnWriteArrayList<Subscription>> subscriptionsByEventType;
    /**
-    *  键值对 <订阅者，方法列表>*/
+    *  键值对 <订阅者，参数列表>*/
     private final Map<Object, List<Class<?>>> typesBySubscriber;
+    /**
+     * <参数类型，订阅者>
+     */
     private final Map<Class<?>, Object> stickyEvents;
 
     private final ThreadLocal<PostingThreadState> currentPostingThreadState = new ThreadLocal<PostingThreadState>() {
@@ -159,8 +162,8 @@ public class EventBus {
     // Must be called in synchronized block
     private void subscribe(Object subscriber, SubscriberMethod subscriberMethod) {
         Class<?> eventType = subscriberMethod.eventType;//订阅参数类型
-        Subscription newSubscription = new Subscription(subscriber, subscriberMethod);
-        CopyOnWriteArrayList<Subscription> subscriptions = subscriptionsByEventType.get(eventType);//获取当前订阅该参数的方法
+        Subscription newSubscription = new Subscription(subscriber, subscriberMethod);//订阅者和方法的关系bean
+        CopyOnWriteArrayList<Subscription> subscriptions = subscriptionsByEventType.get(eventType);//获取当前订阅该参数的<订阅者,订阅关系>列表
         if (subscriptions == null) {
             subscriptions = new CopyOnWriteArrayList<>();
             subscriptionsByEventType.put(eventType, subscriptions);//这里就存入map <参数类型,订阅关系列表>*/
@@ -179,12 +182,12 @@ public class EventBus {
             }
         }
 
-        List<Class<?>> subscribedEvents = typesBySubscriber.get(subscriber);
+        List<Class<?>> subscribedEvents = typesBySubscriber.get(subscriber);//获取该订阅者订阅的方法
         if (subscribedEvents == null) {
             subscribedEvents = new ArrayList<>();
-            typesBySubscriber.put(subscriber, subscribedEvents);//存入map<订阅者，订阅关系>*/
+            typesBySubscriber.put(subscriber, subscribedEvents);//存入map<订阅者，订阅参数列表>*/
         }
-        subscribedEvents.add(eventType);
+        subscribedEvents.add(eventType);//为该订阅者添加订阅参数
 
         if (subscriberMethod.sticky) {
             if (eventInheritance) {//事件继承，默认是true
@@ -193,9 +196,9 @@ public class EventBus {
                 // thus data structure should be changed to allow a more efficient lookup
                 // (e.g. an additional map storing sub classes of super classes: Class -> List<Class>).
                 Set<Map.Entry<Class<?>, Object>> entries = stickyEvents.entrySet();
-                for (Map.Entry<Class<?>, Object> entry : entries) {
+                for (Map.Entry<Class<?>, Object> entry : entries) {//遍历参数类型，查找对应订阅者
                     Class<?> candidateEventType = entry.getKey();
-                    if (eventType.isAssignableFrom(candidateEventType)) {
+                    if (eventType.isAssignableFrom(candidateEventType)) {//判定此 Class 对象所表示的类或接口与指定的 Class 参数所表示的类或接口是否相同，或是否是其超类或超接口
                         Object stickyEvent = entry.getValue();
                         checkPostStickyEventToSubscription(newSubscription, stickyEvent);//如果是粘性事件，触发检查
                     }
@@ -263,7 +266,7 @@ public class EventBus {
     public void post(Object event) {
         PostingThreadState postingState = currentPostingThreadState.get();
         List<Object> eventQueue = postingState.eventQueue;
-        eventQueue.add(event);
+        eventQueue.add(event);//添加到队列
 
         if (!postingState.isPosting) {
             postingState.isMainThread = isMainThread();
@@ -272,7 +275,7 @@ public class EventBus {
                 throw new EventBusException("Internal error. Abort state was not reset");
             }
             try {
-                while (!eventQueue.isEmpty()) {
+                while (!eventQueue.isEmpty()) {//遍历队列
                     postSingleEvent(eventQueue.remove(0), postingState);
                 }
             } finally {
@@ -411,11 +414,11 @@ public class EventBus {
     private boolean postSingleEventForEventType(Object event, PostingThreadState postingState, Class<?> eventClass) {
         CopyOnWriteArrayList<Subscription> subscriptions;
         synchronized (this) {
-            subscriptions = subscriptionsByEventType.get(eventClass);
+            subscriptions = subscriptionsByEventType.get(eventClass);//根据参数类型取出 订阅者-方法列表
         }
         if (subscriptions != null && !subscriptions.isEmpty()) {
             for (Subscription subscription : subscriptions) {
-                postingState.event = event;
+                postingState.event = event;//参数
                 postingState.subscription = subscription;
                 boolean aborted = false;
                 try {
