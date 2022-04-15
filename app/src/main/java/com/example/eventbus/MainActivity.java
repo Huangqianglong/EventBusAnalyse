@@ -8,9 +8,12 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.eventbus.annoationtest.AnnotationTest;
 import com.example.eventbus.annoationtest.AnnotationTestUtils;
+import com.example.eventbus.annoationtest.BindClick;
+import com.example.eventbus.annoationtest.BindView;
 
 import java.util.ArrayList;
 
@@ -18,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     Fragment mFragmentA, mFragmentB;
     FragmentManager mFragmentManager;
+    @BindView(id = R.id.tv_agency)
+    TextView agencyTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         transaction.add(R.id.fl_a, mFragmentA, mFragmentA.getClass().getName());
         transaction.add(R.id.fl_b, mFragmentB, mFragmentB.getClass().getName());
         transaction.commit();
+        AnnotationTestUtils.invokeClick(this);
     }
 
     public void onTvClick(View view) {
@@ -44,4 +50,9 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    @BindClick(id = R.id.tv_agency)
+    private void agencyClick(){
+        Log.d("hql", "agencyClick");
+    }
+
 }

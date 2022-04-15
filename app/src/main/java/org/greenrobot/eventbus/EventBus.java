@@ -146,7 +146,7 @@ public class EventBus {
      */
     public void register(Object subscriber) {
         Class<?> subscriberClass = subscriber.getClass();
-        //获取订阅者订阅的方法
+        //获取订阅者订阅的方法,通过注解和反射，获取订阅者的信息
         List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
         synchronized (this) {
             for (SubscriberMethod subscriberMethod : subscriberMethods) {
